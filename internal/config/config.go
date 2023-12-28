@@ -1,15 +1,52 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"os"
 
-func InitConfig() (*viper.Viper, error) {
-	v := viper.New()
-	v.SetConfigName("config")
-	v.SetConfigType("yaml")
-	v.AddConfigPath("./config")
-	if err := v.ReadInConfig(); err != nil {
+	"gopkg.in/yaml.v3"
+)
+
+type Config struct {
+	Modules *ConfigModules
+	Browser *ConfigBrowser
+}
+
+type ConfigModules struct {
+	Login *ModulesLogin
+}
+
+type ModulesLogin struct {
+	Username string
+	Password string
+	Debug    bool
+}
+
+type ConfigBrowser struct {
+	Driver           string   `yaml:"driver"`
+	Type             string   `yaml:"type"`
+	Args             []string `yaml:"args"`
+	Headless         bool     `yaml:"headless"`
+	SkipInstallation bool     `yaml:"skip_installation"`
+	Debug            bool     `yaml:"debug"`
+}
+
+func InitConfig() (*Config, error) {
+	var config Config
+	fileBuffer, err := os.ReadFile("./config/config.yaml")
+	if err != nil {
 		return nil, err
 	}
+	err = yaml.Unmarshal([]byte(fileBuffer), &config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
 
-	return v, nil
+func (c *Config) GetModulesConfig() *ConfigModules {
+	return c.Modules
+}
+
+func (c *Config) GetBrowserConfig() *ConfigBrowser {
+	return c.Browser
 }
