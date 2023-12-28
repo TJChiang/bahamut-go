@@ -1,6 +1,8 @@
 package login
 
 import (
+	"bahamut/internal/browser"
+	"bahamut/internal/config"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,7 +11,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/spf13/viper"
+	"github.com/playwright-community/playwright-go"
 )
 
 type LoginData struct {
@@ -32,48 +34,83 @@ type BahaCookies struct {
 	MB_BahaRune *http.Cookie
 }
 
-func Login(viper *viper.Viper) (*LoginData, *BahaCookies, error) {
+// 登入巴哈，瀏覽器載入 Cookie
+func Login(params *config.ModulesLogin, page *playwright.Page) (bool, error) {
 	res, err := requestLogin(
-		viper.GetString("login.username"),
-		viper.GetString("login.password"),
+		params.Username,
+		params.Password,
 	)
 	if err != nil {
-		return nil, nil, err
+		return false, err
 	}
 
 	defer res.Body.Close()
 	rawData, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, nil, err
+		return false, err
 	}
 
 	var body map[string]interface{}
 	if err = json.Unmarshal(rawData, &body); err != nil {
-		return nil, nil, err
+		return false, err
 	}
 	if body["message"] != nil {
 		log.Fatalln("登入失敗： ", body["message"])
 		var errorMessage ErrorMessage
 		json.Unmarshal(rawData, &errorMessage)
-		return nil, nil, &errorMessage
+		return false, &errorMessage
 	}
 
 	var loginData LoginData
 	if err = json.Unmarshal(rawData, &loginData); err != nil {
-		return nil, nil, err
+		return false, err
 	}
 
 	log.Println("登入成功： ", loginData.Userid)
 
 	bahaCookies := handleCookies(res.Cookies())
-	if viper.GetBool("login.debug") {
+	if params.Debug {
 		fmt.Println("data: ", loginData)
 		fmt.Println("response cookies: ", res.Cookies())
 		fmt.Println("Baha cookies: ", bahaCookies)
 	}
-	return &loginData, bahaCookies, nil
+
+	return goToHomePage(bahaCookies, page), nil
 }
 
+func goToHomePage(cookies *BahaCookies, page *playwright.Page) bool {
+	if cookies.BahaRune == nil || cookies.BahaEnur == nil {
+		return false
+	}
+	browser.Goto(*page, "home")
+	context := (*page).Context()
+	context.AddCookies([]playwright.OptionalCookie{
+		{
+			Name:   cookies.BahaID.Name,
+			Value:  cookies.BahaID.Value,
+			Path:   &cookies.BahaID.Path,
+			Domain: &cookies.BahaID.Domain,
+		},
+		{
+			Name:   cookies.BahaRune.Name,
+			Value:  cookies.BahaRune.Value,
+			Path:   &cookies.BahaRune.Path,
+			Domain: &cookies.BahaRune.Domain,
+		},
+		{
+			Name:   cookies.BahaEnur.Name,
+			Value:  cookies.BahaEnur.Value,
+			Path:   &cookies.BahaEnur.Path,
+			Domain: &cookies.BahaEnur.Domain,
+		},
+	})
+	browser.Goto(*page, "home")
+	(*page).WaitForTimeout(2000)
+	log.Println("成功載入 Cookie")
+	return true
+}
+
+// 取得巴哈 Response 的 Cookie
 func handleCookies(cookies []*http.Cookie) *BahaCookies {
 	var baha BahaCookies
 	for _, c := range cookies {
@@ -96,6 +133,7 @@ func handleCookies(cookies []*http.Cookie) *BahaCookies {
 	return &baha
 }
 
+// 請求登入
 func requestLogin(username string, password string) (*http.Response, error) {
 	reqBody := url.Values{}
 	reqBody.Set("uid", username)
