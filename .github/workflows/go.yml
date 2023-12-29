@@ -9,6 +9,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  WORKDIR: ${{ github.workspace }}
+
 jobs:
 
   build:
@@ -25,13 +28,12 @@ jobs:
       env:
         USERNAME: ${{ secrets.USERNAME }}
         PASSWORD: ${{ secrets.USER_PASSWORD }}
-        WORKDIR: ${{ github.workspace }}
       run: |
         cp ${{ env.WORKDIR }}/config/example.yaml ${{ env.WORKDIR }}/config/config.yaml
         sed -i -e 's/username:/username: ${{env.USERNAME}}/g' -e 's/password:/password ${{env.PASSWORD}}/g' ${{ env.WORKDIR }}/config/example.yaml
 
     - name: Build
-      run: go build -o ./build/main
+      run: go build -o ${{ env.WORKDIR }}/build/main
 
     - name: Test
       run: go test
