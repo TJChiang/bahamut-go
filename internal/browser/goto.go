@@ -19,7 +19,6 @@ func Goto(page playwright.Page, location Page) (playwright.Response, error) {
 		u = "https://user.gamer.com.tw/login.php"
 	case location == "user":
 		u = "https://home.gamer.com.tw/homeindex.php?owner=<owner>"
-	case location == "home":
 	default:
 		u = "https://www.gamer.com.tw/"
 	}

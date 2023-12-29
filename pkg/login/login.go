@@ -55,7 +55,7 @@ func Login(params *config.ModulesLogin, page playwright.Page) (bool, error) {
 		return false, err
 	}
 	if body["message"] != nil {
-		log.Fatalln("登入失敗： ", body["message"])
+		log.Fatalln("[登入] 登入失敗： ", body["message"])
 		var errorMessage ErrorMessage
 		json.Unmarshal(rawData, &errorMessage)
 		return false, &errorMessage
@@ -66,7 +66,7 @@ func Login(params *config.ModulesLogin, page playwright.Page) (bool, error) {
 		return false, err
 	}
 
-	log.Println("登入成功： ", loginData.Userid)
+	log.Println("[登入] 登入成功： ", loginData.Userid)
 
 	bahaCookies := handleCookies(res.Cookies())
 	if params.Debug {
@@ -105,8 +105,7 @@ func goToHomePage(cookies *BahaCookies, page playwright.Page) bool {
 		},
 	})
 	browser.Goto(page, browser.Home)
-	page.WaitForTimeout(2000)
-	log.Println("成功載入 Cookie")
+	log.Println("[登入] 成功載入 Cookie")
 	return true
 }
 
