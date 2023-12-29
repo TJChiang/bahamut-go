@@ -3,17 +3,21 @@ package main
 import (
 	libBrowser "bahamut/internal/browser"
 	"bahamut/internal/config"
+	"bahamut/internal/container"
 	"bahamut/pkg/login"
 	"bahamut/pkg/sign"
+	"net/http"
 )
 
 func main() {
-	c, err := config.InitConfig()
+	conf, err := config.InitConfig()
 	if err != nil {
 		panic(err)
 	}
 
-	browser, context, err := libBrowser.Launch(c.GetBrowserConfig())
+	con := container.Register(&http.Client{}, conf)
+
+	browser, context, err := libBrowser.Launch(con.Config().GetBrowserConfig())
 	if err != nil {
 		panic(err)
 	}
@@ -26,13 +30,13 @@ func main() {
 	defer page.Close()
 
 	// 登入
-	_, err = login.Login(c.GetModulesConfig().Login, page)
+	_, err = login.Login(con, page)
 	if err != nil {
 		panic(err)
 	}
 
 	// 簽到
-	_, err = sign.Sign(c.GetBrowserConfig(), page)
+	_, err = sign.Sign(con, page)
 	if err != nil {
 		panic(err)
 	}

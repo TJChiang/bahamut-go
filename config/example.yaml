@@ -3,6 +3,8 @@ modules:
     username:
     password:
     debug: true
+  sign:
+    debug: false
 
 browser:
   driver: chromium

@@ -2,9 +2,8 @@ package login
 
 import (
 	"bahamut/internal/browser"
-	"bahamut/internal/config"
+	"bahamut/internal/container"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -35,8 +34,10 @@ type BahaCookies struct {
 }
 
 // 登入巴哈，瀏覽器載入 Cookie
-func Login(params *config.ConfigModulesLogin, page playwright.Page) (bool, error) {
+func Login(con *container.Container, page playwright.Page) (bool, error) {
+	params := con.Config().Modules.Login
 	res, err := requestLogin(
+		con.HttpClient(),
 		params.Username,
 		params.Password,
 	)
@@ -70,9 +71,9 @@ func Login(params *config.ConfigModulesLogin, page playwright.Page) (bool, error
 
 	bahaCookies := handleCookies(res.Cookies())
 	if params.Debug {
-		fmt.Println("data: ", loginData)
-		fmt.Println("response cookies: ", res.Cookies())
-		fmt.Println("Baha cookies: ", bahaCookies)
+		log.Println("[Debug][登入] 登入資料:", loginData)
+		log.Println("[Debug][登入] Response Cookies:", res.Cookies())
+		log.Println("[Debug][登入] Cookies: ", bahaCookies)
 	}
 
 	return goToHomePage(bahaCookies, page), nil
@@ -133,7 +134,7 @@ func handleCookies(cookies []*http.Cookie) *BahaCookies {
 }
 
 // 請求登入
-func requestLogin(username string, password string) (*http.Response, error) {
+func requestLogin(h *http.Client, username string, password string) (*http.Response, error) {
 	reqBody := url.Values{}
 	reqBody.Set("uid", username)
 	reqBody.Set("passwd", password)
@@ -149,5 +150,5 @@ func requestLogin(username string, password string) (*http.Response, error) {
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Cookie", "ckAPP_VCODE=6666")
-	return http.DefaultClient.Do(req)
+	return h.Do(req)
 }

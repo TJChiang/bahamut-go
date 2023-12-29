@@ -2,9 +2,8 @@ package sign
 
 import (
 	"bahamut/internal/browser"
-	"bahamut/internal/config"
+	"bahamut/internal/container"
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/playwright-community/playwright-go"
@@ -17,7 +16,7 @@ type SignInfo struct {
 	PrjSigninDays int `json:"data.prjSigninDays"`
 }
 
-func Sign(c *config.ConfigBrowser, page playwright.Page) (bool, error) {
+func Sign(con *container.Container, page playwright.Page) (bool, error) {
 	log.Println("[簽到] 開始執行簽到")
 	homeRes, err := browser.Goto(page, browser.Home)
 	if err != nil {
@@ -52,7 +51,7 @@ func getSignStatus(page playwright.Page) (*SignInfo, *SignError, error) {
 		return nil, nil, err
 	}
 
-	fmt.Println("[Debug] 簽到: ", data)
+	log.Println("[Debug][簽到] 簽到資料:", data)
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
