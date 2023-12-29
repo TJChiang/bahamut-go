@@ -78,7 +78,6 @@ func Login(con *container.Container, page playwright.Page) (bool, error) {
 	}
 
 	if setHttpClientCookie(con, bahaCookies) != nil {
-		panic(err)
 		return false, err
 	}
 	return goToHomePage(bahaCookies, page), nil
