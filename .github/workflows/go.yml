@@ -25,7 +25,7 @@ jobs:
       env:
         USERNAME: ${{ secrets.USERNAME }}
         PASSWORD: ${{ secrets.USER_PASSWORD }}
-        WORKDIR: ${{GITHUB_WORKSPACE}}
+        WORKDIR: ${{ github.workspace }}
       run: |
         cp ${{ env.WORKDIR }}/config/example.yaml ${{ env.WORKDIR }}/config/config.yaml
         sed -i -e 's/username:/username: ${{env.USERNAME}}/g' -e 's/password:/password ${{env.PASSWORD}}/g' ${{ env.WORKDIR }}/config/example.yaml
