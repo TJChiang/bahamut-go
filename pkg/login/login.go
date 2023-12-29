@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"strings"
 
@@ -69,13 +70,17 @@ func Login(con *container.Container, page playwright.Page) (bool, error) {
 
 	log.Println("[登入] 登入成功： ", loginData.Userid)
 
-	bahaCookies := handleCookies(res.Cookies())
+	bahaCookies := getBahaCookies(res.Cookies())
 	if params.Debug {
 		log.Println("[Debug][登入] 登入資料:", loginData)
 		log.Println("[Debug][登入] Response Cookies:", res.Cookies())
 		log.Println("[Debug][登入] Cookies: ", bahaCookies)
 	}
 
+	if setHttpClientCookie(con, bahaCookies) != nil {
+		panic(err)
+		return false, err
+	}
 	return goToHomePage(bahaCookies, page), nil
 }
 
@@ -111,7 +116,7 @@ func goToHomePage(cookies *BahaCookies, page playwright.Page) bool {
 }
 
 // 取得巴哈 Response 的 Cookie
-func handleCookies(cookies []*http.Cookie) *BahaCookies {
+func getBahaCookies(cookies []*http.Cookie) *BahaCookies {
 	var baha BahaCookies
 	for _, c := range cookies {
 		switch c.Name {
@@ -131,6 +136,41 @@ func handleCookies(cookies []*http.Cookie) *BahaCookies {
 	}
 
 	return &baha
+}
+
+func setHttpClientCookie(con *container.Container, cookies *BahaCookies) error {
+	cookieUrl, err := url.Parse("https://api.gamer.com.tw/mobile_app/user/v3/do_login.php")
+	if err != nil {
+		return err
+	}
+	h := con.HttpClient()
+	h.Jar, err = cookiejar.New(nil)
+	if err != nil {
+		return err
+	}
+
+	var jar []*http.Cookie
+	if cookies.BahaID != nil {
+		jar = append(jar, cookies.BahaID)
+	}
+	if cookies.BahaRune != nil {
+		jar = append(jar, cookies.BahaRune)
+	}
+	if cookies.BahaEnur != nil {
+		jar = append(jar, cookies.BahaEnur)
+	}
+	if cookies.BahaHashID != nil {
+		jar = append(jar, cookies.BahaHashID)
+	}
+	if cookies.MB_BahaID != nil {
+		jar = append(jar, cookies.MB_BahaID)
+	}
+	if cookies.MB_BahaRune != nil {
+		jar = append(jar, cookies.MB_BahaRune)
+	}
+
+	h.Jar.SetCookies(cookieUrl, jar)
+	return nil
 }
 
 // 請求登入
