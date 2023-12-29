@@ -27,8 +27,8 @@ jobs:
         PASSWORD: ${{ secrets.USER_PASSWORD }}
         WORKDIR: ${{GITHUB_WORKSPACE}}
       run: |
-        cp ${{ WORKDIR }}/config/example.yaml ${{ WORKDIR }}/config/config.yaml
-        sed -i -e 's/username:/username: ${{USERNAME}}/g' -e 's/password:/password ${{PASSWORD}}/g' ${{ WORKDIR }}/config/example.yaml
+        cp ${{ env.WORKDIR }}/config/example.yaml ${{ env.WORKDIR }}/config/config.yaml
+        sed -i -e 's/username:/username: ${{env.USERNAME}}/g' -e 's/password:/password ${{env.PASSWORD}}/g' ${{ env.WORKDIR }}/config/example.yaml
 
     - name: Build
       run: go build -o ./build/main
