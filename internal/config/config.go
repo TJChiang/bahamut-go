@@ -13,12 +13,17 @@ type Config struct {
 
 type ConfigModules struct {
 	Login *ConfigModulesLogin
+	Sign  *ConfigModulesSign
 }
 
 type ConfigModulesLogin struct {
 	Username string
 	Password string
 	Debug    bool
+}
+
+type ConfigModulesSign struct {
+	Debug bool
 }
 
 type ConfigBrowser struct {
