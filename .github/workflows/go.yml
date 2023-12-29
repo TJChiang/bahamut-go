@@ -21,8 +21,13 @@ jobs:
       with:
         go-version: '1.20'
 
+    - name: Create config yaml
+      run: |
+        cp ${{ GITHUB_WORKSPACE }}/config/example.yaml ${{ GITHUB_WORKSPACE }}/config/config.yaml
+        sed -i -e 's/username:/username: ${{USERNAME}}/g' -e 's/password:/password ${{USER_PASSWORD}}/g' ${{ GITHUB_WORKSPACE }}/config/example.yaml
+
     - name: Build
-      run: go build -v ./...
+      run: go build -o ./build/main
 
     - name: Test
-      run: go test -v ./...
+      run: go test

@@ -4,7 +4,7 @@ modules:
     password:
     debug: true
   sign:
-    debug: false
+    debug: true
 
 browser:
   driver: chromium
