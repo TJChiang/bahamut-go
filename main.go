@@ -4,6 +4,7 @@ import (
 	libBrowser "bahamut/internal/browser"
 	"bahamut/internal/config"
 	"bahamut/pkg/login"
+	"bahamut/pkg/sign"
 )
 
 func main() {
@@ -23,5 +24,16 @@ func main() {
 		panic(err)
 	}
 	defer page.Close()
-	login.Login(c.GetModulesConfig().Login, &page)
+
+	// 登入
+	_, err = login.Login(c.GetModulesConfig().Login, page)
+	if err != nil {
+		panic(err)
+	}
+
+	// 簽到
+	_, err = sign.Sign(c.GetBrowserConfig(), page)
+	if err != nil {
+		panic(err)
+	}
 }
