@@ -35,7 +35,7 @@ type BahaCookies struct {
 }
 
 // 登入巴哈，瀏覽器載入 Cookie
-func Login(params *config.ModulesLogin, page playwright.Page) (bool, error) {
+func Login(params *config.ConfigModulesLogin, page playwright.Page) (bool, error) {
 	res, err := requestLogin(
 		params.Username,
 		params.Password,

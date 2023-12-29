@@ -12,10 +12,10 @@ type Config struct {
 }
 
 type ConfigModules struct {
-	Login *ModulesLogin
+	Login *ConfigModulesLogin
 }
 
-type ModulesLogin struct {
+type ConfigModulesLogin struct {
 	Username string
 	Password string
 	Debug    bool
