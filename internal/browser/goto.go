@@ -1,19 +1,25 @@
 package browser
 
 import (
-	"strings"
-
 	"github.com/playwright-community/playwright-go"
 )
 
-func Goto(page playwright.Page, location string) (playwright.Response, error) {
+type Page string
+
+const (
+	Home  Page = "home"
+	Login Page = "login"
+	User  Page = "user"
+)
+
+func Goto(page playwright.Page, location Page) (playwright.Response, error) {
 	var u string
-	switch strings.ToLower(location) {
-	case "login":
+	switch {
+	case location == "login":
 		u = "https://user.gamer.com.tw/login.php"
-	case "user":
+	case location == "user":
 		u = "https://home.gamer.com.tw/homeindex.php?owner=<owner>"
-	case "home":
+	case location == "home":
 	default:
 		u = "https://www.gamer.com.tw/"
 	}
