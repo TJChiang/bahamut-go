@@ -35,7 +35,7 @@ type BahaCookies struct {
 }
 
 // 登入巴哈，瀏覽器載入 Cookie
-func Login(params *config.ModulesLogin, page *playwright.Page) (bool, error) {
+func Login(params *config.ModulesLogin, page playwright.Page) (bool, error) {
 	res, err := requestLogin(
 		params.Username,
 		params.Password,
@@ -78,12 +78,12 @@ func Login(params *config.ModulesLogin, page *playwright.Page) (bool, error) {
 	return goToHomePage(bahaCookies, page), nil
 }
 
-func goToHomePage(cookies *BahaCookies, page *playwright.Page) bool {
+func goToHomePage(cookies *BahaCookies, page playwright.Page) bool {
 	if cookies.BahaRune == nil || cookies.BahaEnur == nil {
 		return false
 	}
-	browser.Goto(*page, "home")
-	context := (*page).Context()
+	browser.Goto(page, browser.Home)
+	context := page.Context()
 	context.AddCookies([]playwright.OptionalCookie{
 		{
 			Name:   cookies.BahaID.Name,
@@ -104,8 +104,8 @@ func goToHomePage(cookies *BahaCookies, page *playwright.Page) bool {
 			Domain: &cookies.BahaEnur.Domain,
 		},
 	})
-	browser.Goto(*page, "home")
-	(*page).WaitForTimeout(2000)
+	browser.Goto(page, browser.Home)
+	page.WaitForTimeout(2000)
 	log.Println("成功載入 Cookie")
 	return true
 }
