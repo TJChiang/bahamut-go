@@ -4,11 +4,7 @@ import (
 	"bahamut/internal/browser"
 	"bahamut/internal/container"
 	"encoding/json"
-	"io"
 	"log"
-	"net/http"
-	"net/url"
-	"strings"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -29,55 +25,55 @@ func Sign(con *container.Container, page playwright.Page) (bool, error) {
 
 	log.Println("[簽到] 主頁狀態: ", homeRes.Status())
 
-	_, _, err = getSignStatus(con, page)
+	_, err = getSignStatus(con, page)
 	if err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func getSignStatus(con *container.Container, page playwright.Page) (*SignInfo, *SignError, error) {
-	reqBody := url.Values{}
-	reqBody.Set("action", "2")
-	req, err := http.NewRequest(
-		http.MethodPost,
-		"https://www.gamer.com.tw/ajax/signin.php",
-		strings.NewReader(reqBody.Encode()),
-	)
+func getSignStatus(con *container.Container, page playwright.Page) (*SignInfo, error) {
+	// 在主頁跑簽到 API
+	data, err := page.Evaluate(`async () => {
+		const controller = new AbortController();
+	    setTimeout(() => controller.abort(), 30000);
+		const res = await fetch("https://www.gamer.com.tw/ajax/signin.php", {
+	        method: "POST",
+	        headers: {
+	            "Content-Type": "application/x-www-form-urlencoded",
+	        },
+	        body: "action=2",
+	        signal: controller.signal,
+	    });
+	    return res.json();
+	}`)
 	if err != nil {
-		return nil, nil, err
-	}
-
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	res, err := con.HttpClient().Do(req)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	defer res.Body.Close()
-	dataByte, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var resBody map[string]interface{}
-	if err = json.Unmarshal(dataByte, &resBody); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if con.Config().GetModulesConfig().Sign.Debug {
-		log.Println("[Debug][簽到] 簽到資料:", resBody)
+		log.Println("[Debug][簽到] 簽到資料:", data)
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
 	}
 
 	// 判斷錯誤訊息
-	if resBody["error"] != nil {
+	var freeData map[string]interface{}
+	if err = json.Unmarshal(jsonData, &freeData); err != nil {
+		return nil, err
+	}
+
+	if freeData["error"] != nil {
 		var errorMessage SignError
-		json.Unmarshal(dataByte, &errorMessage)
-		log.Fatalln("[簽到] 簽到失敗：", errorMessage)
-		return nil, nil, errorMessage
+		json.Unmarshal(jsonData, &errorMessage)
+		log.Fatalln("[簽到] 簽到失敗：", jsonData)
+		return nil, errorMessage
 	}
 
 	var signInfo SignInfo
-	json.Unmarshal(dataByte, &signInfo)
-	return &signInfo, nil, nil
+	json.Unmarshal(jsonData, &signInfo)
+	return &signInfo, nil
 }
