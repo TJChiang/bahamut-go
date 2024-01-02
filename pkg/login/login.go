@@ -3,13 +3,16 @@ package login
 import (
 	"bahamut/internal/browser"
 	"bahamut/internal/container"
+	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"strings"
+	"text/template"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -77,41 +80,45 @@ func Login(con *container.Container, page playwright.Page) (bool, error) {
 		log.Println("[Debug][登入] Cookies: ", bahaCookies)
 	}
 
-	if setHttpClientCookie(con, bahaCookies) != nil {
+	if err = setHttpClientCookie(con, bahaCookies); err != nil {
 		return false, err
 	}
-	return goToHomePage(bahaCookies, page), nil
+
+	if err = handleScriptCookies(bahaCookies, page); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
-func goToHomePage(cookies *BahaCookies, page playwright.Page) bool {
+func handleScriptCookies(cookies *BahaCookies, page playwright.Page) error {
 	if cookies.BahaRune == nil || cookies.BahaEnur == nil {
-		return false
+		return errors.New("登入 cookie 不存在")
 	}
+
 	browser.Goto(page, browser.Home)
 	context := page.Context()
-	context.AddCookies([]playwright.OptionalCookie{
-		{
-			Name:   cookies.BahaID.Name,
-			Value:  cookies.BahaID.Value,
-			Path:   &cookies.BahaID.Path,
-			Domain: &cookies.BahaID.Domain,
-		},
-		{
-			Name:   cookies.BahaRune.Name,
-			Value:  cookies.BahaRune.Value,
-			Path:   &cookies.BahaRune.Path,
-			Domain: &cookies.BahaRune.Domain,
-		},
-		{
-			Name:   cookies.BahaEnur.Name,
-			Value:  cookies.BahaEnur.Value,
-			Path:   &cookies.BahaEnur.Path,
-			Domain: &cookies.BahaEnur.Domain,
-		},
+
+	// main.go 所在的位置為根目錄
+	t, err := template.ParseFiles("./pkg/login/add_cookies.js")
+	if err != nil {
+		return err
+	}
+	var js bytes.Buffer
+	t.Execute(&js, cookies)
+	if err != nil {
+		return err
+	}
+
+	// 設定起始腳本，將 cookie 存入，讓後續模組 fetch request 可以取得 cookie
+	content := js.String()
+	context.AddInitScript(playwright.Script{
+		Content: &content,
 	})
-	browser.Goto(page, browser.Home)
-	log.Println("[登入] 成功載入 Cookie")
-	return true
+
+	log.Println("[登入] Script 成功載入 Cookie")
+
+	return nil
 }
 
 // 取得巴哈 Response 的 Cookie
@@ -169,6 +176,8 @@ func setHttpClientCookie(con *container.Container, cookies *BahaCookies) error {
 	}
 
 	h.Jar.SetCookies(cookieUrl, jar)
+
+	log.Println("[登入] HTTP Client 成功載入 cookie")
 	return nil
 }
 
