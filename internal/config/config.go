@@ -28,7 +28,6 @@ type ConfigModulesSign struct {
 
 type ConfigBrowser struct {
 	Driver           string   `yaml:"driver"`
-	Type             string   `yaml:"type"`
 	Args             []string `yaml:"args"`
 	Headless         bool     `yaml:"headless"`
 	SkipInstallation bool     `yaml:"skip_installation"`

@@ -2,15 +2,14 @@ modules:
   login:
     username:
     password:
-    debug: true
+    debug: false
   sign:
     debug: true
 
 browser:
   driver: chromium
-  type: chrome
   args:
     - "--mute-audio"
   headless: true
-  skip_installation: false
+  skip_installation: true
   debug: true

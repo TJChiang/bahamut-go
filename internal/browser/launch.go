@@ -10,7 +10,6 @@ import (
 func Launch(c *config.ConfigBrowser) (playwright.Browser, playwright.BrowserContext, error) {
 	runOpts := playwright.RunOptions{
 		SkipInstallBrowsers: c.SkipInstallation,
-		Browsers:            []string{c.Type},
 	}
 	err := playwright.Install(&runOpts)
 	if err != nil {
@@ -24,9 +23,6 @@ func Launch(c *config.ConfigBrowser) (playwright.Browser, playwright.BrowserCont
 	launchOpts := playwright.BrowserTypeLaunchOptions{
 		Args:     c.Args,
 		Headless: &c.Headless,
-	}
-	if c.Driver == "chromium" {
-		launchOpts.Channel = &c.Type
 	}
 	browser, err := getBrowserDriver(pw, c.Driver).Launch(launchOpts)
 	if err != nil {
