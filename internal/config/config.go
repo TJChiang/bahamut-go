@@ -35,9 +35,9 @@ type ConfigBrowser struct {
 	Debug            bool     `yaml:"debug"`
 }
 
-func InitConfig() (*Config, error) {
+func InitConfig(filePath string) (*Config, error) {
 	var config Config
-	fileBuffer, err := os.ReadFile("./config/config.yaml")
+	fileBuffer, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}

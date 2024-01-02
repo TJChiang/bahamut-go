@@ -10,18 +10,6 @@ type Container struct {
 	config     *config.Config
 }
 
-func Default() (*Container, error) {
-	c, err := config.InitConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	return &Container{
-		httpClient: &http.Client{},
-		config:     c,
-	}, nil
-}
-
 func Register(h *http.Client, c *config.Config) *Container {
 	return &Container{
 		httpClient: h,

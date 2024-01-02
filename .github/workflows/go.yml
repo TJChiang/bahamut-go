@@ -29,8 +29,8 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
         PASSWORD: ${{ secrets.USER_PASSWORD }}
       run: |
-        cp ${{ env.WORKSPACE }}/config/example.yaml ${{ env.WORKSPACE }}/config/config.yaml
-        sed -i -e 's/username:/username: ${{env.USERNAME}}/g' -e 's/password:/password ${{env.PASSWORD}}/g' ${{ env.WORKSPACE }}/config/example.yaml
+        cp ${{ env.WORKSPACE }}/configs/example.yaml ${{ env.WORKSPACE }}/configs/config.yaml
+        sed -i -e 's/username:/username: ${{env.USERNAME}}/g' -e 's/password:/password ${{env.PASSWORD}}/g' ${{ env.WORKSPACE }}/configs/example.yaml
 
     - name: Build
       run: go build -o ${{ env.WORKSPACE }}/build/main
