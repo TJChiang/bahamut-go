@@ -44,8 +44,8 @@ jobs:
     - name: Update Docker image
       if: steps.cache-image.outputs.cache-hit != 'true'
       run: |
-        docker save -o ~/image-cache/bahamut.tar bahamut
         docker build -t 'bahamut' .
+        docker save -o ~/image-cache/bahamut.tar bahamut
 
     - name: Load Docker image
       if: steps.cache-image.outputs.cache-hit == 'true'
