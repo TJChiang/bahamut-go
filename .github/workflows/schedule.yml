@@ -1,9 +1,10 @@
 name: Schedule
 
 on:
-  schedule:
-    # - cron: "0 8,20 * * *"
-    - cron: "* * * * *"
+  push:
+    branches: [ "main" ]
+  # schedule:
+  #   - cron: "0 8,20 * * *"
 
 env:
   WORKSPACE: ${{ github.workspace }}
