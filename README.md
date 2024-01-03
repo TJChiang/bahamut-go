@@ -15,3 +15,5 @@ Github 和 Gitlab 有很多開發者做過這個專案，自己希望以 Go 實�
 ## Troubleshooting
 
 - Docker 出現 npx install playwright 錯誤：[run playwright-go on Ubuntu](https://github.com/playwright-community/playwright-go/issues/277)
+- nektos/act 本機測試 Github Action 時出現 `Cannot connect to Docker daemon` (colima) => [解決辦法](https://github.com/nektos/act/issues/1051)
+- Github Action Cache Docker image => [Solution](https://stackoverflow.com/a/71183339)

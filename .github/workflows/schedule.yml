@@ -1,0 +1,50 @@
+name: Schedule
+
+on:
+  schedule:
+    # - cron: "0 8,20 * * *"
+    - cron: "* * * * *"
+
+env:
+  WORKSPACE: ${{ github.workspace }}
+
+jobs:
+  automation:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+        cache-dependency-path: "**/*.sum"
+
+    - name: Create config yaml
+      env:
+        USERNAME: ${{ secrets.USERNAME }}
+        PASSWORD: ${{ secrets.USER_PASSWORD }}
+      run: |
+        cp ${{ env.WORKSPACE }}/configs/example.yaml ${{ env.WORKSPACE }}/configs/config.yaml
+        sed -i -e 's/username:/username: ${{env.USERNAME}}/g' -e 's/password:/password ${{env.PASSWORD}}/g' ${{ env.WORKSPACE }}/configs/example.yaml
+
+    - name: Cache Docker image
+      id: cache-image
+      uses: actions/cache@v3
+      with:
+        path: ~/image-cache
+        keys: ${{ runner.os }}-image-cache-${{ hashFiles('**/*.*') }}
+
+    - name: Update Docker image
+      if: steps.cache-image.outputs.cache-hit != 'true'
+      run: docker save -o ~/image-cache/bahamut.tar alpine
+
+    # - name: Build Docker image
+    #   run: docker build -t 'bahamut' .
+
+    - name: Update Docker image
+      if: steps.cache-image.outputs.cache-hit ＝= 'true'
+      run: docker load -i ~/image-cache/bahamut.tar
+
+    - name: Run
+      run: docker run bahamut
