@@ -48,7 +48,7 @@ jobs:
     # - name: Build Docker image
     #   run: docker build -t 'bahamut' .
 
-    - name: Update Docker image
+    - name: Load Docker image
       if: steps.cache-image.outputs.cache-hit == 'true'
       run: docker load -i ~/image-cache/bahamut.tar
 
