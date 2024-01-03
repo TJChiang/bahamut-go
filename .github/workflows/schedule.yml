@@ -31,7 +31,7 @@ jobs:
     - name: Check cache directory
       run: |
         if [ ! -d "~/image-cache" ]; then
-          mkdir image-cache
+          mkdir ~/image-cache
         fi
 
     - name: Cache Docker image
