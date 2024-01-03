@@ -9,11 +9,15 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
+type SignData struct {
+	Data SignInfo `json:"data"`
+}
+
 type SignInfo struct {
-	Days          int `json:"data.days"`
-	Signin        int `json:"data.signin"`
-	FinishedAd    int `json:"data.finishedAd"`
-	PrjSigninDays int `json:"data.prjSigninDays"`
+	Days          int `json:"days"`
+	Signin        int `json:"signin"`
+	FinishedAd    int `json:"finishedAd"`
+	PrjSigninDays int `json:"prjSigninDays"`
 }
 
 func Sign(con *container.Container, page playwright.Page) (bool, error) {
@@ -25,14 +29,14 @@ func Sign(con *container.Container, page playwright.Page) (bool, error) {
 
 	log.Println("[簽到] 主頁狀態: ", homeRes.Status())
 
-	_, err = getSignStatus(con, page)
-	if err != nil {
+	if err = getSignStatus(con, page); err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
-func getSignStatus(con *container.Container, page playwright.Page) (*SignInfo, error) {
+func getSignStatus(con *container.Container, page playwright.Page) error {
 	// 在主頁跑簽到 API
 	data, err := page.Evaluate(`async () => {
 		const controller = new AbortController();
@@ -48,7 +52,7 @@ func getSignStatus(con *container.Container, page playwright.Page) (*SignInfo, e
 	    return res.json();
 	}`)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if con.Config().GetModulesConfig().Sign.Debug {
@@ -57,23 +61,39 @@ func getSignStatus(con *container.Container, page playwright.Page) (*SignInfo, e
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// 判斷錯誤訊息
 	var freeData map[string]interface{}
 	if err = json.Unmarshal(jsonData, &freeData); err != nil {
-		return nil, err
+		return err
 	}
 
 	if freeData["error"] != nil {
 		var errorMessage SignError
 		json.Unmarshal(jsonData, &errorMessage)
 		log.Fatalln("[簽到] 簽到失敗：", jsonData)
-		return nil, errorMessage
+		return errorMessage
 	}
 
-	var signInfo SignInfo
-	json.Unmarshal(jsonData, &signInfo)
-	return &signInfo, nil
+	var signData SignData
+	json.Unmarshal(jsonData, &signData)
+
+	if con.Config().GetModulesConfig().Sign.Debug {
+		log.Println("[Debug][簽到] json資料:", data)
+	}
+
+	log.Printf("[簽到] 已連續簽到 %d 天 \n", signData.Data.Days)
+	if signData.Data.Signin != 1 {
+		if err = page.Locator("a#signin-btn").Click(); err != nil {
+			log.Println("[簽到] 手動觸發失敗：", err)
+			return err
+		}
+		log.Println("[簽到] 手動簽到成功！")
+	} else {
+		log.Println("[簽到] 今日已簽到！")
+	}
+
+	return nil
 }
