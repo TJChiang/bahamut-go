@@ -40,6 +40,11 @@ type BahaCookies struct {
 // 登入巴哈，瀏覽器載入 Cookie
 func Login(con *container.Container, page playwright.Page) (bool, error) {
 	params := con.Config().Modules.Login
+
+	if con.Config().Modules.Login.Debug {
+		log.Println("[Debug][登入] 登入帳號：", params.Username)
+	}
+
 	res, err := requestLogin(
 		con.HttpClient(),
 		params.Username,
