@@ -2,9 +2,9 @@ modules:
   login:
     username:
     password:
-    debug: true
+    debug: false
   sign:
-    debug: true
+    debug: false
 
 browser:
   driver: chromium
