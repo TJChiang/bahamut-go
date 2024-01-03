@@ -28,12 +28,18 @@ jobs:
         cp ${{ env.WORKSPACE }}/configs/example.yaml ${{ env.WORKSPACE }}/configs/config.yaml
         sed -i -e 's/username:/username: ${{env.USERNAME}}/g' -e 's/password:/password ${{env.PASSWORD}}/g' ${{ env.WORKSPACE }}/configs/example.yaml
 
+    - name: Check cache directory
+      run: |
+        if [ ! -d "~/image-cache" ]; then
+          mkdir image-cache
+        fi
+
     - name: Cache Docker image
       id: cache-image
       uses: actions/cache@v3
       with:
         path: ~/image-cache
-        keys: ${{ runner.os }}-image-cache-${{ hashFiles('**/*.*') }}
+        key: ${{ runner.os }}-image-cache-${{ hashFiles('**/*.*') }}
 
     - name: Update Docker image
       if: steps.cache-image.outputs.cache-hit != 'true'
