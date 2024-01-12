@@ -20,23 +20,24 @@ type SignInfo struct {
 	PrjSigninDays int `json:"prjSigninDays"`
 }
 
-func Sign(con *container.Container, page playwright.Page) (bool, error) {
+func Sign(con *container.Container, page playwright.Page) (*SignInfo, error) {
 	log.Println("[簽到] 開始執行簽到")
 	homeRes, err := browser.Goto(page, browser.Home)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	log.Println("[簽到] 主頁狀態: ", homeRes.Status())
 
-	if err = getSignStatus(con, page); err != nil {
-		return false, err
+	info, err := getSignStatus(con, page)
+	if err != nil {
+		return nil, err
 	}
 
-	return true, nil
+	return info, nil
 }
 
-func getSignStatus(con *container.Container, page playwright.Page) error {
+func getSignStatus(con *container.Container, page playwright.Page) (*SignInfo, error) {
 	// 在主頁跑簽到 API
 	data, err := page.Evaluate(`async () => {
 		const controller = new AbortController();
@@ -52,7 +53,7 @@ func getSignStatus(con *container.Container, page playwright.Page) error {
 	    return res.json();
 	}`)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if con.Config().GetModulesConfig().Sign.Debug {
@@ -61,20 +62,20 @@ func getSignStatus(con *container.Container, page playwright.Page) error {
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// 判斷錯誤訊息
 	var freeData map[string]interface{}
 	if err = json.Unmarshal(jsonData, &freeData); err != nil {
-		return err
+		return nil, err
 	}
 
 	if freeData["error"] != nil {
 		var errorMessage SignError
 		json.Unmarshal(jsonData, &errorMessage)
 		log.Fatalln("[簽到] 簽到失敗：", jsonData)
-		return errorMessage
+		return nil, errorMessage
 	}
 
 	var signData SignData
@@ -88,12 +89,12 @@ func getSignStatus(con *container.Container, page playwright.Page) error {
 	if signData.Data.Signin != 1 {
 		if err = page.Locator("a#signin-btn").Click(); err != nil {
 			log.Println("[簽到] 手動觸發失敗：", err)
-			return err
+			return nil, err
 		}
 		log.Println("[簽到] 手動簽到成功！")
 	} else {
 		log.Println("[簽到] 今日已簽到！")
 	}
 
-	return nil
+	return &signData.Data, nil
 }

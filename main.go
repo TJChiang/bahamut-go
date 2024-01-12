@@ -4,8 +4,10 @@ import (
 	libBrowser "bahamut/internal/browser"
 	"bahamut/internal/config"
 	"bahamut/internal/container"
+	linenotify "bahamut/pkg/line_notify"
 	"bahamut/pkg/login"
 	"bahamut/pkg/sign"
+	"fmt"
 	"net/http"
 )
 
@@ -36,8 +38,16 @@ func main() {
 	}
 
 	// 簽到
-	_, err = sign.Sign(con, page)
+	signInfo, err := sign.Sign(con, page)
 	if err != nil {
+		e := fmt.Sprintf("\n[簽到失敗] %s", err.Error())
+		linenotify.Notify(con, e)
+		panic(err)
+	}
+
+	n := fmt.Sprintf("\n[簽到成功] 已簽到 %d 天", signInfo.Days)
+	// Line Notify
+	if err = linenotify.Notify(con, n); err != nil {
 		panic(err)
 	}
 }
