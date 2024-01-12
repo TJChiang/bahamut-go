@@ -12,8 +12,9 @@ type Config struct {
 }
 
 type ConfigModules struct {
-	Login *ConfigModulesLogin
-	Sign  *ConfigModulesSign
+	Login      *ConfigModulesLogin
+	Sign       *ConfigModulesSign
+	LineNotify *ConfigModulesLineNotify `yaml:"line_notify"`
 }
 
 type ConfigModulesLogin struct {
@@ -24,6 +25,10 @@ type ConfigModulesLogin struct {
 
 type ConfigModulesSign struct {
 	Debug bool
+}
+
+type ConfigModulesLineNotify struct {
+	Token string `yaml:"personal_token"`
 }
 
 type ConfigBrowser struct {

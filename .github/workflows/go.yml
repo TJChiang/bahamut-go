@@ -29,9 +29,12 @@ jobs:
       env:
         USERNAME: ${{ secrets.USERNAME }}
         PASSWORD: ${{ secrets.USER_PASSWORD }}
+        NOTIFY_TOKEN: ${{ secrets.LINE_NOTIFY_TOKEN }}
       run: |
         cp ${{ env.WORKSPACE }}/configs/example.yaml ${{ env.WORKSPACE }}/configs/config.yaml
-        sed -i -e 's/username:/username: ${{env.USERNAME}}/g' -e 's/password:/password: ${{env.PASSWORD}}/g' ${{ env.WORKSPACE }}/configs/config.yaml
+        sed -i -e 's/username:/username: ${{env.USERNAME}}/g' \
+        -e 's/password:/password: ${{env.PASSWORD}}/g' \
+        -e 's/personal_token:/personal_token: ${{env.NOTIFY_TOKEN}}/g' ${{ env.WORKSPACE }}/configs/config.yaml
 
     - name: Build
       run: go build -o ${{ env.WORKSPACE }}/build/main
