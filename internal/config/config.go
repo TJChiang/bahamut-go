@@ -28,7 +28,8 @@ type ConfigModulesSign struct {
 }
 
 type ConfigModulesLineNotify struct {
-	Token string `yaml:"personal_token"`
+	Active bool   `yaml:"active"`
+	Token  string `yaml:"personal_token"`
 }
 
 type ConfigBrowser struct {

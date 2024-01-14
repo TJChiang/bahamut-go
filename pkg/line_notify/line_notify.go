@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -17,6 +18,11 @@ type NotifyResponse struct {
 }
 
 func Notify(con *container.Container, message string) error {
+	if !con.Config().Modules.LineNotify.Active {
+		log.Println("[Line Notify] 未啟用，不執行此模組")
+		return nil
+	}
+
 	reqBody := url.Values{}
 	reqBody.Set("message", message)
 	req, err := http.NewRequest(

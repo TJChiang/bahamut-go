@@ -6,7 +6,8 @@ modules:
   sign:
     debug: false
   line_notify:
-    personal_token: fake-token
+    active: true
+    personal_token:
 
 browser:
   driver: chromium
