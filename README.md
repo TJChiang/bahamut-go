@@ -9,7 +9,7 @@ Github 和 Gitlab 有很多開發者做過這個專案，自己希望以 Go 實�
 - [x] 設定 GitHub Actions
 - [x] Docker化
 - [x] 設定 CronJob
-- [ ] 串接 Notify
+- [x] 串接 Notify
 - [ ] 使用文件
 - [ ] 寫測試
 - [ ] Docker image 優化
